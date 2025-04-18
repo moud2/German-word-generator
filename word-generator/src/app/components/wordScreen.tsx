@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowsRightLeftIcon,
@@ -8,6 +8,7 @@ import {
   ArrowPathIcon,
   MinusIcon,
   PlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/solid';
 
 import allWords from '../components/data/all.json';
@@ -22,6 +23,8 @@ export default function WordScreen() {
   const [level, setLevel] = useState<Level>('A1');
   const [minutes, setMinutes] = useState(5);
   const { secondsLeft, isRunning, start, pause, reset, format } = useTimer();
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [exploded, setExploded] = useState(false);
 
   const filteredWords = useMemo(
     () => ALL_WORDS.filter((word) => word.level === level && word.type === 'noun'),
@@ -53,8 +56,54 @@ export default function WordScreen() {
     <motion.main
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen bg-green-50 flex flex-col items-center justify-center px-4"
+      className="min-h-screen bg-green-50 flex flex-col items-center justify-center px-4 relative"
     >
+      {showWelcome && (
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="absolute top-10 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white border border-green-400 rounded-lg p-6 shadow-xl z-50"
+          dir="rtl"
+        >
+          <div className="flex justify-between items-start">
+            <h2 className="text-lg font-semibold text-green-700">👋 مرحبًا</h2>
+            <button
+              onClick={() => {
+                setShowWelcome(false);
+                setExploded(true);
+                setTimeout(() => setExploded(false), 500);
+              }}
+              className="text-green-500 hover:text-green-700"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="mt-2 text-sm text-gray-700 leading-relaxed text-right">
+            لاستخدام الأداة، اختر مستوى اللغة الذي يناسبك، ثم اضغط على زر توليد الكلمة. بعد ذلك، قم بضبط المؤقت وابدأ بالتحدث عن الكلمة المحددة.
+            <br />
+            الهدف من هذه الأداة هو مساعدتك على التحدث بطلاقة عن مواضيع مختلفة خلال مدة زمنية محددة.
+          </div>
+         
+          <div className="mt-4 text-sm text-gray-700 leading-relaxed text-right">
+            للحصول على أفضل نتيجة:
+          </div>
+          <ul className="list-disc list-inside mt-1 text-sm text-gray-700 text-right" dir="rtl">
+            <li>تحدث لمدة زمنية محددة، ثم دوِّن بعض الكلمات التي كان من الممكن أن تساعدك على التعبير بشكل أفضل.</li>
+            <li>قم بضبط المؤقت من جديد، واستخدم هذه الكلمات في حديثك. ستلاحظ أنك تعبر عن أفكارك بثقة أكبر.</li>
+          </ul>
+        </motion.div>
+      )}
+
+      {!showWelcome && (
+        <button
+          onClick={() => setShowWelcome(true)}
+          className="fixed bottom-4 right-4 bg-yellow-400 hover:bg-yellow-500 text-white rounded-full p-3 shadow-lg z-40"
+          title="إظهار التعليمات"
+        >
+          💡
+        </button>
+      )}
+
       {/* Level Selector */}
       <div className="mb-6 flex flex-wrap gap-2 justify-center">
         {LEVELS.map((lvl) => (
@@ -79,33 +128,31 @@ export default function WordScreen() {
 
       {/* Word Display */}
       <div className="w-full max-w-full px-4 text-center">
-  <motion.h1
-    key={current.lemma}
-    initial={{ y: -20, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-    className="text-green-800 font-extrabold truncate"
-    style={{
-      fontSize: 'min(10vw, 64px)', // dynamic size: max 64px, but scales on smaller screens
-      lineHeight: '1.2',
-    }}
-  >
-    {current.lemma}
-  </motion.h1>
-</div>
-
+        <motion.h1
+          key={current.lemma}
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          className="text-green-800 font-extrabold truncate"
+          style={{
+            fontSize: 'min(10vw, 64px)',
+            lineHeight: '1.2',
+          }}
+        >
+          {current.lemma}
+        </motion.h1>
+      </div>
 
       {/* Translations */}
       <motion.p
-  key={JSON.stringify(current.translations)}
-  initial={{ y: 20, opacity: 0 }}
-  animate={{ y: 0, opacity: 1 }}
-  transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 20 }}
-  className="mt-4 text-3xl text-gray-600 text-center"
->
-  {(current.translations?.en?.[0] ?? '—') + ' · ' + (current.translations?.fr?.[0] ?? '—')}
-</motion.p>
-
+        key={JSON.stringify(current.translations)}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 20 }}
+        className="mt-4 text-3xl text-gray-600 text-center"
+      >
+        {(current.translations?.en?.[0] ?? '—') + ' · ' + (current.translations?.fr?.[0] ?? '—')}
+      </motion.p>
 
       {/* Generate Button */}
       <motion.button
