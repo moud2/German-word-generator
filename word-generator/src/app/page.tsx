@@ -12,7 +12,9 @@ export default function Home() {
   return (
     <>
       <Head>
+      <script defer data-domain="qamar.onrender.com" src="https://plausible.io/js/script.js"></script>
         <title>German Word Generator</title>
+        
         <meta
           name="description"
           content="Learn a new German word every time you hit Generate!"
