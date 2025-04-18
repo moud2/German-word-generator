@@ -25,12 +25,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* ✅ Plausible Analytics */}
+        {/* ✅ Plausible Analytics with tagged events */}
         <script
           defer
           data-domain="qamar.onrender.com"
-          src="https://plausible.io/js/script.js"
+          src="https://plausible.io/js/script.outbound-links.tagged-events.js"
         ></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.plausible = window.plausible || function() {
+                (window.plausible.q = window.plausible.q || []).push(arguments);
+              };
+            `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
