@@ -78,15 +78,22 @@ export default function WordScreen() {
       </div>
 
       {/* Word Display */}
-      <motion.h1
-        key={current.lemma}
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        className="text-7xl md:text-8xl font-extrabold text-green-800 text-center"
-      >
-        {current.lemma}
-      </motion.h1>
+      <div className="w-full max-w-full px-4 text-center">
+  <motion.h1
+    key={current.lemma}
+    initial={{ y: -20, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    className="text-green-800 font-extrabold truncate"
+    style={{
+      fontSize: 'min(10vw, 64px)', // dynamic size: max 64px, but scales on smaller screens
+      lineHeight: '1.2',
+    }}
+  >
+    {current.lemma}
+  </motion.h1>
+</div>
+
 
       {/* Translations */}
       <motion.p
