@@ -18,7 +18,9 @@ export default function Home() {
           content="Learn a new German word every time you hit Generate!"
         />
       </Head>
-      <WordScreen />
+      <div className={`${poppins.variable} font-sans`}>
+        <WordScreen />
+      </div>
     </>
   )
 }
