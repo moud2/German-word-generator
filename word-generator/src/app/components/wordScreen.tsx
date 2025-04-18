@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowsRightLeftIcon,
@@ -24,7 +24,7 @@ export default function WordScreen() {
   const [minutes, setMinutes] = useState(5);
   const { secondsLeft, isRunning, start, pause, reset, format } = useTimer();
   const [showWelcome, setShowWelcome] = useState(true);
-  const [exploded, setExploded] = useState(false);
+  const [, setExploded] = useState(false);
 
   const filteredWords = useMemo(
     () => ALL_WORDS.filter((word) => word.level === level && word.type === 'noun'),
