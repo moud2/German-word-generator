@@ -10,9 +10,7 @@ const poppins = Poppins({
 export default function Home() {
   return (
     <>
-      <div className="bg-yellow-100 text-yellow-800 text-center text-sm px-4 py-2 font-medium shadow-md">
-        هذا إصدار تجريبي، الرجاء عدم التقاط صور أو مشاركة الرابط
-      </div>
+     
 
       <div className={`${poppins.variable} font-sans`}>
         <WordScreen />

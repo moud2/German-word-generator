@@ -9,6 +9,7 @@ import {
   MinusIcon,
   PlusIcon,
   XMarkIcon,
+  LightBulbIcon
 } from '@heroicons/react/24/solid';
 
 import allWords from '../components/data/all.json';
@@ -83,7 +84,7 @@ export default function WordScreen() {
             <br />
             الهدف من هذه الأداة هو مساعدتك على التحدث بطلاقة عن مواضيع مختلفة خلال مدة زمنية محددة.
           </div>
-         
+
           <div className="mt-4 text-sm text-gray-700 leading-relaxed text-right">
             للحصول على أفضل نتيجة:
           </div>
@@ -97,10 +98,10 @@ export default function WordScreen() {
       {!showWelcome && (
         <button
           onClick={() => setShowWelcome(true)}
-          className="fixed bottom-4 right-4 bg-yellow-400 hover:bg-yellow-500 text-white rounded-full p-3 shadow-lg z-40"
+          className="fixed bottom-4 right-4 bg-white border border-yellow-400 text-yellow-500 hover:bg-yellow-50 rounded-full p-3 shadow-lg z-40 flex items-center"
           title="إظهار التعليمات"
         >
-          💡
+          <LightBulbIcon className="h-6 w-6" />
         </button>
       )}
 
@@ -134,12 +135,11 @@ export default function WordScreen() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           className="text-green-800 font-extrabold truncate"
-          style={{
-            fontSize: 'min(10vw, 64px)',
-            lineHeight: '1.2',
-          }}
+          style={{ fontSize: 'min(10vw, 64px)', lineHeight: '1.2' }}
         >
-          {current.lemma}
+          {current.type === 'noun' && current.gender
+            ? `${current.gender === 'm' ? 'der' : current.gender === 'f' ? 'die' : 'das'} ${current.lemma}`
+            : current.lemma}
         </motion.h1>
       </div>
 
@@ -223,6 +223,17 @@ export default function WordScreen() {
         <div className="bg-green-100 text-green-800 font-mono text-2xl px-6 py-2 rounded-full">
           {format()}
         </div>
+      </div>
+
+      {/* Coming Soon Box */}
+      <div className="mt-10 bg-yellow-50 border border-yellow-300 rounded-lg shadow-sm text-sm text-yellow-800 px-4 py-3 max-w-md w-full text-right" dir="rtl">
+        <h3 className="font-bold mb-1">✨ الميزات القادمة:</h3>
+        <ul className="list-disc list-inside">
+          <li>ترجمة الكلمة إلى العربية</li>
+          <li>إمكانية تسجيل الصوت</li>
+          <li>حفظ سجل الكلمات</li>
+          <li>الاستماع إلى نطق الكلمة</li>
+        </ul>
       </div>
     </motion.main>
   );
