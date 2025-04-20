@@ -1,0 +1,19 @@
+{
+    "welcome": {
+      "title": "👋 Welcome",
+      "instructions": "Choose your level and press the generate button.",
+      "tips_title": "Tips for best results",
+      "tips": [
+        "Speak for a set amount of time, then write down helpful words.",
+        "Restart the timer and use the new words. You'll speak with more confidence."
+      ],
+      "coming_soon_title": "✨ Upcoming Features:",
+      "coming_soon_items": [
+        "Word translation to Arabic",
+        "Voice recording",
+        "Word history",
+        "Listen to pronunciation"
+      ]
+    }
+  }
+  

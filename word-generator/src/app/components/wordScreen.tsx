@@ -1,4 +1,7 @@
 'use client';
+import '../i18n'; 
+import LanguageSwitcher from './LanguageSwitcher';
+
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -15,6 +18,7 @@ import {
 import allWords from '../components/data/all.json';
 import { WordEntry } from '../types/word';
 import useTimer from '../hooks/useTimer';
+import { useTranslation } from 'react-i18next';
 
 type Level = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -26,6 +30,11 @@ export default function WordScreen() {
   const { secondsLeft, isRunning, start, pause, reset, format } = useTimer();
   const [showWelcome, setShowWelcome] = useState(true);
   const [, setExploded] = useState(false);
+
+  const { t, i18n } = useTranslation();
+
+  const tips = t('welcome.tips', { returnObjects: true }) as string[];
+  const features = t('welcome.coming_soon_items', { returnObjects: true }) as string[];
 
   const filteredWords = useMemo(
     () => ALL_WORDS.filter((word) => word.level === level && word.type === 'noun'),
@@ -59,38 +68,61 @@ export default function WordScreen() {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-green-50 flex flex-col items-center justify-center px-4 relative"
     >
+      {/* Language Switcher at the top */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageSwitcher />
+      </div>
+
       {showWelcome && (
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="absolute top-10 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white border border-green-400 rounded-lg p-6 shadow-xl z-50"
-          dir="rtl"
+          dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}
         >
           <div className="flex justify-between items-start">
-            <h2 className="text-lg font-semibold text-green-700">👋 مرحبًا</h2>
-            <button
-              onClick={() => {
-                setShowWelcome(false);
-                setExploded(true);
-                setTimeout(() => setExploded(false), 500);
-              }}
-              className="text-green-500 hover:text-green-700"
-            >
-              <XMarkIcon className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="mt-2 text-sm text-gray-700 leading-relaxed text-right">
-            لاستخدام الأداة، اختر مستوى اللغة الذي يناسبك، ثم اضغط على زر توليد الكلمة. بعد ذلك، قم بضبط المؤقت وابدأ بالتحدث عن الكلمة المحددة.
-            <br />
-            الهدف من هذه الأداة هو مساعدتك على التحدث بطلاقة عن مواضيع مختلفة خلال مدة زمنية محددة.
+            <h2 className="text-lg font-semibold text-green-700">{t('welcome.title')}</h2>
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher compact />
+              <button
+                onClick={() => {
+                  setShowWelcome(false);
+                  setExploded(true);
+                  setTimeout(() => setExploded(false), 500);
+                }}
+                className="text-green-500 hover:text-green-700"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="mt-4 text-sm text-gray-700 leading-relaxed text-right">
-            للحصول على أفضل نتيجة:
-          </div>
-          <ul className="list-disc list-inside mt-1 text-sm text-gray-700 text-right" dir="rtl">
-            <li>تحدث لمدة زمنية محددة، ثم دوِّن بعض الكلمات التي كان من الممكن أن تساعدك على التعبير بشكل أفضل.</li>
-            <li>قم بضبط المؤقت من جديد، واستخدم هذه الكلمات في حديثك. ستلاحظ أنك تعبر عن أفكارك بثقة أكبر.</li>
+          <div
+  className={`mt-2 text-sm text-gray-700 leading-relaxed ${
+    i18n.language === 'ar' ? 'text-right' : 'text-left'
+  }`}
+>
+  {t('welcome.instructions')}
+</div>
+
+
+<div
+  className={`mt-4 text-sm text-gray-700 leading-relaxed ${
+    i18n.language === 'ar' ? 'text-right' : 'text-left'
+  }`}
+>
+  {t('welcome.tips_title')}
+</div>
+
+<ul
+  className={`list-disc list-inside mt-1 text-sm text-gray-700 ${
+    i18n.language === 'ar' ? 'text-right' : 'text-left'
+  }`}
+>
+
+            {tips.map((tip, idx) => (
+              <li key={idx}>{tip}</li>
+            ))}
           </ul>
         </motion.div>
       )}
@@ -99,7 +131,7 @@ export default function WordScreen() {
         <button
           onClick={() => setShowWelcome(true)}
           className="fixed bottom-4 right-4 bg-white border border-yellow-400 text-yellow-500 hover:bg-yellow-50 rounded-full p-3 shadow-lg z-40 flex items-center"
-          title="إظهار التعليمات"
+          title="Show instructions"
         >
           <LightBulbIcon className="h-6 w-6" />
         </button>
@@ -226,13 +258,18 @@ export default function WordScreen() {
       </div>
 
       {/* Coming Soon Box */}
-      <div className="mt-10 bg-yellow-50 border border-yellow-300 rounded-lg shadow-sm text-sm text-yellow-800 px-4 py-3 max-w-md w-full text-right" dir="rtl">
-        <h3 className="font-bold mb-1">✨ الميزات القادمة:</h3>
+      <div
+  dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}
+  className={`mt-10 bg-yellow-50 border border-yellow-300 rounded-lg shadow-sm text-sm text-yellow-800 px-4 py-3 max-w-md w-full ${
+    i18n.language === 'ar' ? 'text-right' : 'text-left'
+  }`}
+>
+
+        <h3 className="font-bold mb-1">{t('welcome.coming_soon_title')}</h3>
         <ul className="list-disc list-inside">
-          <li>ترجمة الكلمة إلى العربية</li>
-          <li>إمكانية تسجيل الصوت</li>
-          <li>حفظ سجل الكلمات</li>
-          <li>الاستماع إلى نطق الكلمة</li>
+          {features.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
         </ul>
       </div>
     </motion.main>

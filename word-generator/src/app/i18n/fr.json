@@ -1,0 +1,19 @@
+{
+    "welcome": {
+      "title": "👋 Bienvenue",
+      "instructions": "Choisissez votre niveau, puis appuyez sur le bouton Générer.",
+      "tips_title": "Conseils pour de meilleurs résultats :",
+      "tips": [
+        "Parlez pendant un temps défini, puis notez les mots utiles.",
+        "Redémarrez le minuteur et utilisez ces mots. Vous gagnerez en confiance."
+      ],
+      "coming_soon_title": "✨ Fonctionnalités à venir :",
+      "coming_soon_items": [
+        "Traduction du mot en arabe",
+        "Enregistrement vocal",
+        "Historique des mots",
+        "Écoute de la prononciation"
+      ]
+    }
+  }
+  
