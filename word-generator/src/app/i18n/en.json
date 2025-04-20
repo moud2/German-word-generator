@@ -1,19 +1,19 @@
 {
-    "welcome": {
-      "title": "👋 Welcome",
-      "instructions": "Choose your level and press the generate button.",
-      "tips_title": "Tips for best results",
-      "tips": [
-        "Speak for a set amount of time, then write down helpful words.",
-        "Restart the timer and use the new words. You'll speak with more confidence."
-      ],
-      "coming_soon_title": "✨ Upcoming Features:",
-      "coming_soon_items": [
-        "Word translation to Arabic",
-        "Voice recording",
-        "Word history",
-        "Listen to pronunciation"
-      ]
-    }
+  "welcome": {
+    "title": "👋 Welcome",
+    "instructions": "The idea is simple: choose a random German word, start the timer, and speak about that topic for around two minutes.",
+    "tips_title": "How to get the most out of it:",
+    "tips": [
+      "After speaking, check what words you were missing.",
+      "Learn those new words.",
+      "Repeat the exercise using your updated vocabulary — you’ll notice a big improvement!"
+    ],
+    "coming_soon_title": "✨ Upcoming Features:",
+    "coming_soon_items": [
+      "Translation of the word into Arabic",
+      "Voice recording",
+      "Word history",
+      "Listen to pronunciation"
+    ]
   }
-  
+}

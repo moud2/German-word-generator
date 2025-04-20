@@ -1,19 +1,19 @@
 {
-    "welcome": {
-      "title": "👋 Bienvenue",
-      "instructions": "Choisissez votre niveau, puis appuyez sur le bouton Générer.",
-      "tips_title": "Conseils pour de meilleurs résultats :",
-      "tips": [
-        "Parlez pendant un temps défini, puis notez les mots utiles.",
-        "Redémarrez le minuteur et utilisez ces mots. Vous gagnerez en confiance."
-      ],
-      "coming_soon_title": "✨ Fonctionnalités à venir :",
-      "coming_soon_items": [
-        "Traduction du mot en arabe",
-        "Enregistrement vocal",
-        "Historique des mots",
-        "Écoute de la prononciation"
-      ]
-    }
+  "welcome": {
+    "title": "👋 Bienvenue",
+    "instructions": "L’idée est simple : choisissez un mot aléatoire en allemand, lancez le minuteur, puis parlez du sujet lié à ce mot pendant deux minutes, par exemple.",
+    "tips_title": "Comment utiliser l’outil efficacement :",
+    "tips": [
+      "Après l’exercice, identifiez les mots qui vous manquent.",
+      "Apprenez ces nouveaux mots.",
+      "Refaites l’exercice en utilisant le vocabulaire appris — vous verrez une nette amélioration !"
+    ],
+    "coming_soon_title": "✨ Fonctionnalités à venir :",
+    "coming_soon_items": [
+      "Traduction du mot en arabe",
+      "Enregistrement vocal",
+      "Historique des mots",
+      "Écoute de la prononciation"
+    ]
   }
-  
+}
