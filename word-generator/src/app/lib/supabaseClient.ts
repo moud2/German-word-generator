@@ -1,4 +1,4 @@
-'use client';
+'use client'; // Important if you're using app/ directory
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -9,6 +9,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   if (typeof window !== 'undefined') {
     throw new Error('Supabase environment variables are missing!');
   }
+  // Server side: DO NOT throw error, allow build to continue.
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
