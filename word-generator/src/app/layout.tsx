@@ -26,6 +26,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* ✅ Google Site Verification */}
+        <meta
+          name="google-site-verification"
+          content="ylOUFExag692M4GW1X_8Wodc56OsBw41idNCcjxf_h4"
+        />
+
         {/* ✅ Plausible Analytics with tagged events */}
         <script
           defer
