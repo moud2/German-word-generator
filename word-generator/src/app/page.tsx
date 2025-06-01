@@ -1,6 +1,8 @@
 import { Poppins } from 'next/font/google'
 import WordScreen from './components/wordScreen'
 
+
+
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '600'],
