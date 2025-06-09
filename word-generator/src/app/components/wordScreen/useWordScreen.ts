@@ -5,6 +5,11 @@ import { useTranslation } from 'react-i18next';
 import useTimer from '../../hooks/useTimer';
 import allWords from '../../components/data/all.json';
 import { WordEntry } from '../../types/word';
+import dynamic from 'next/dynamic';
+const Recorder = dynamic(() => import('../recorder/Recorder'), { ssr: false });
+
+
+
 
 type Level = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];

@@ -2,7 +2,9 @@
 
 import Footer from '../Footer';
 import Header from '../Header';
-import Recorder from '../recorder/Recorder';
+import dynamic from 'next/dynamic';
+const Recorder = dynamic(() => import('../recorder/Recorder'), { ssr: false });
+
 
 import WelcomeModal from './WelcomeModal';
 import InstructionToggle from './InstructionToggle';

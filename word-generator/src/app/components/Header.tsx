@@ -19,7 +19,7 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-4 bg-green-50 shadow">
       <Link href="/" className="text-green-700 font-bold text-lg">
-        Word Generator
+        Topic Generator
       </Link>
 
       {/* Desktop Navigation */}
