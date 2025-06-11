@@ -35,18 +35,9 @@ export default function RootLayout({
         {/* ✅ Plausible Analytics with tagged events */}
         <script
           defer
-          data-domain="qamar.onrender.com"
-          src="https://plausible.io/js/script.outbound-links.tagged-events.js"
+          data-domain="germantopic.com"
+          src="https://plausible.io/js/script.js"
         ></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.plausible = window.plausible || function() {
-                (window.plausible.q = window.plausible.q || []).push(arguments);
-              };
-            `,
-          }}
-        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
