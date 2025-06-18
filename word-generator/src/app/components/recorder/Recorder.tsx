@@ -3,16 +3,29 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAudioRecorder } from '@/app/hooks/useAudioRecorder';
-import { Mic } from 'lucide-react'; // ✅ mic icon
+import { Mic } from 'lucide-react';
 
 function formatTime(seconds: number) {
-  const mins = Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, '0');
-  const secs = Math.floor(seconds % 60)
-    .toString()
-    .padStart(2, '0');
+  const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
   return `${mins}:${secs}`;
+}
+
+type SentencePair = { wrong: string; correct: string };
+
+function extractSentencePairs(feedback: string): SentencePair[] {
+  const pattern = /\d+\.\s*❌ You said:\s*"([^"]+)"\s*✅ AI Suggests:\s*"([^"]+)"/g;
+  const matches = feedback.matchAll(pattern);
+  const pairs: SentencePair[] = [];
+
+  for (const match of matches) {
+    pairs.push({
+      wrong: match[1].trim(),
+      correct: match[2].trim(),
+    });
+  }
+
+  return pairs;
 }
 
 export default function Recorder() {
@@ -27,6 +40,7 @@ export default function Recorder() {
 
   const [audioURLs, setAudioURLs] = useState<string[]>([]);
   const [seconds, setSeconds] = useState(0);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -50,17 +64,37 @@ export default function Recorder() {
   }, [recordings]);
 
   const toggleRecording = () => {
-    // Stop all playing audio
     const audios = document.querySelectorAll('audio');
     audios.forEach((audio) => {
       audio.pause();
       audio.currentTime = 0;
     });
-  
-    // Then toggle recording
+
     isRecording ? stopRecording() : startRecording();
   };
-  
+
+  const getFeedback = async () => {
+    const lastBlob = recordings[recordings.length - 1];
+    if (!lastBlob) return alert('No recording available.');
+
+    const formData = new FormData();
+    formData.append('file', lastBlob, 'recording.webm');
+
+    try {
+      const res = await fetch('/api/analyze-audio', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      setFeedback(data.feedback || null);
+    } catch (err) {
+      console.error('Error parsing feedback:', err);
+      alert('Could not process feedback.');
+    }
+  };
+
+  const sentencePairs = feedback ? extractSentencePairs(feedback) : [];
 
   return (
     <div className="p-6 bg-white shadow-md rounded-2xl max-w-md w-full mx-auto space-y-6">
@@ -105,7 +139,7 @@ export default function Recorder() {
                   });
                 }}
               />
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 <button
                   onClick={() => deleteRecording(index)}
                   className="text-red-600 text-sm hover:underline"
@@ -119,11 +153,42 @@ export default function Recorder() {
                 >
                   {i18n.language === 'ar' ? 'تحميل' : 'Download'}
                 </a>
+                {index === recordings.length - 1 && (
+                  <button
+                    onClick={getFeedback}
+                    className="text-green-600 text-sm hover:underline"
+                  >
+                    {i18n.language === 'ar' ? 'تحليل' : 'Analyze'}
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {sentencePairs.length > 0 && (
+  <div className="mt-6 p-4 bg-white border rounded-xl space-y-4 text-sm">
+    <h3 className="font-semibold text-gray-800 mb-2">🗣 Feedback Table</h3>
+    <table className="table-auto w-full text-left border-collapse">
+      <thead>
+        <tr className="bg-gray-100 text-gray-700 text-sm font-semibold">
+          <th className="px-4 py-2 border-b">🗣 You said</th>
+          <th className="px-4 py-2 border-b">🤖 AI Suggests</th>
+        </tr>
+      </thead>
+      <tbody>
+        {sentencePairs.map((pair, i) => (
+          <tr key={i} className="hover:bg-gray-50 transition">
+            <td className="px-4 py-3 border-b text-gray-800 align-top">{pair.wrong}</td>
+            <td className="px-4 py-3 border-b text-gray-800 align-top">{pair.correct}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
+
     </div>
   );
 }

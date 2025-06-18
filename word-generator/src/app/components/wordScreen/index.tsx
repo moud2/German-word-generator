@@ -70,7 +70,7 @@ export default function WordScreen() {
           <GenerateButton onClick={handleGenerate} />
         </div>
 
-        {/* Timer Panel */}
+        {/* Timer Panel 
         <div className="w-full max-w-md mt-4 sm:mt-5 md:mt-6">
           <TimerPanel
             minutes={minutes}
@@ -81,7 +81,7 @@ export default function WordScreen() {
             format={format}
           />
         </div>
-
+*/}
         {/* Voice Recorder */}
         <div className="w-full max-w-md mt-4 sm:mt-5 md:mt-6">
           <Recorder />
