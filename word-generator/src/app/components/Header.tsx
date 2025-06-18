@@ -3,17 +3,20 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '../context/AuthContext'; // ✅ import Auth
+import { useAuth } from '../context/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
-import { supabase } from '../lib/supabaseClient'; // ✅ import supabase to log out
+import { supabase } from '../lib/supabaseClient';
+import useAvailableMinutes from '../hooks/useAvailableMinutes';
 
 export default function Header() {
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const minutes = useAvailableMinutes();
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setMenuOpen(false); // Close menu if on mobile
+    setMenuOpen(false);
   };
 
   return (
@@ -27,8 +30,10 @@ export default function Header() {
         <LanguageSwitcher compact />
         {user ? (
           <>
-            {/* ✅ Logged in */}
             <span className="text-green-700">{user.email}</span>
+            {minutes !== null && (
+              <span className="text-green-700">⏱ {minutes} min</span>
+            )}
             <button
               onClick={handleLogout}
               className="text-green-700 hover:underline"
@@ -38,7 +43,6 @@ export default function Header() {
           </>
         ) : (
           <>
-            {/* ✅ Logged out */}
             <Link href="/login" className="text-green-700 hover:underline">
               Sign In
             </Link>
@@ -70,6 +74,9 @@ export default function Header() {
           {user ? (
             <>
               <span className="text-green-700">{user.email}</span>
+              {minutes !== null && (
+                <span className="text-green-700">⏱ {minutes} min</span>
+              )}
               <button
                 onClick={handleLogout}
                 className="text-green-700 hover:underline text-left"

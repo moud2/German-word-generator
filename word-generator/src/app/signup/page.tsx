@@ -9,18 +9,36 @@ export default function Signup() {
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false); // ✅ track if message is an error
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { error } = await supabase.auth.signUp({ email, password });
+ const handleSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
 
-    if (error) {
-      setIsError(true);
-      setMessage(error.message);
-    } else {
-      setIsError(false);
-      setMessage("🎉 You're almost done! Check your inbox and confirm your email.");
+  if (error) {
+    setIsError(true);
+    setMessage(error.message);
+  } else {
+    const user = data.user;
+    if (user) {
+      // Insert into the profiles table
+      const { error: insertError } = await supabase.from('profiles').insert([
+        {
+          id: user.id,
+          available_minutes: 1, 
+        },
+      ]);
+
+      if (insertError) {
+        console.error('Error inserting into profiles:', insertError.message);
+      }
     }
-  };
+
+    setIsError(false);
+    setMessage("🎉 You're almost done! Check your inbox and confirm your email.");
+  }
+};
 
   return (
     <div className="min-h-screen bg-green-50 flex items-center justify-center px-4">
