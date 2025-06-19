@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAudioRecorder } from '@/app/hooks/useAudioRecorder';
 import { Mic } from 'lucide-react';
+import useAvailableMinutes from '@hooks/useAvailableMinutes';
+import { supabase } from '@/app/lib/supabaseClient';
 
 function formatTime(seconds: number) {
   const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -30,6 +32,9 @@ function extractSentencePairs(feedback: string): SentencePair[] {
 
 export default function Recorder() {
   const { i18n } = useTranslation();
+  const [userId, setUserId] = useState<string | null>(null);
+  const minutes = useAvailableMinutes();
+
   const {
     recordings,
     isRecording,
@@ -41,6 +46,15 @@ export default function Recorder() {
   const [audioURLs, setAudioURLs] = useState<string[]>([]);
   const [seconds, setSeconds] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  // ✅ Get user ID
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUserId(data.user?.id ?? null);
+    };
+    getUser();
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -92,6 +106,28 @@ export default function Recorder() {
       console.error('Error parsing feedback:', err);
       alert('Could not process feedback.');
     }
+  };
+
+  const handleAnalyzeClick = async () => {
+    if (!userId) return alert('Please log in first.');
+
+    if ((minutes ?? 0) < 1) {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          price_id: 'price_1Rb54bCX5IVNSF5NOnnvp0JI', // replace with your Stripe price ID
+        }),
+      });
+
+      const { url } = await res.json();
+      if (url) window.location.href = url;
+      return;
+    }
+
+    // Enough minutes → proceed
+    await getFeedback();
   };
 
   const sentencePairs = feedback ? extractSentencePairs(feedback) : [];
@@ -155,7 +191,7 @@ export default function Recorder() {
                 </a>
                 {index === recordings.length - 1 && (
                   <button
-                    onClick={getFeedback}
+                    onClick={handleAnalyzeClick}
                     className="text-green-600 text-sm hover:underline"
                   >
                     {i18n.language === 'ar' ? 'تحليل' : 'Analyze'}
@@ -168,27 +204,30 @@ export default function Recorder() {
       )}
 
       {sentencePairs.length > 0 && (
-  <div className="mt-6 p-4 bg-white border rounded-xl space-y-4 text-sm">
-    <h3 className="font-semibold text-gray-800 mb-2">🗣 Feedback Table</h3>
-    <table className="table-auto w-full text-left border-collapse">
-      <thead>
-        <tr className="bg-gray-100 text-gray-700 text-sm font-semibold">
-          <th className="px-4 py-2 border-b">🗣 You said</th>
-          <th className="px-4 py-2 border-b">🤖 AI Suggests</th>
-        </tr>
-      </thead>
-      <tbody>
-        {sentencePairs.map((pair, i) => (
-          <tr key={i} className="hover:bg-gray-50 transition">
-            <td className="px-4 py-3 border-b text-gray-800 align-top">{pair.wrong}</td>
-            <td className="px-4 py-3 border-b text-gray-800 align-top">{pair.correct}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-)}
-
+        <div className="mt-6 p-4 bg-white border rounded-xl space-y-4 text-sm">
+          <h3 className="font-semibold text-gray-800 mb-2">🗣 Feedback Table</h3>
+          <table className="table-auto w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-gray-700 text-sm font-semibold">
+                <th className="px-4 py-2 border-b">🗣 You said</th>
+                <th className="px-4 py-2 border-b">🤖 AI Suggests</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sentencePairs.map((pair, i) => (
+                <tr key={i} className="hover:bg-gray-50 transition">
+                  <td className="px-4 py-3 border-b text-gray-800 align-top">
+                    {pair.wrong}
+                  </td>
+                  <td className="px-4 py-3 border-b text-gray-800 align-top">
+                    {pair.correct}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
