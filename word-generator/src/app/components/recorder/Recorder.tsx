@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAudioRecorder } from '@/app/hooks/useAudioRecorder';
-import { Mic } from 'lucide-react';
+import { Mic, Loader2 } from 'lucide-react';
 import useAvailableMinutes from '@hooks/useAvailableMinutes';
 import { supabase } from '@/app/lib/supabaseClient';
 
@@ -29,7 +29,8 @@ type SmartFeedback = {
 export default function Recorder() {
   const { i18n } = useTranslation();
   const [userId, setUserId] = useState<string | null>(null);
-  const minutes = useAvailableMinutes();
+  const { minutes, deductMinutes, loading: minutesLoading } = useAvailableMinutes();
+  const [analyzing, setAnalyzing] = useState(false);
 
   const {
     recordings,
@@ -84,12 +85,16 @@ export default function Recorder() {
 
   const getFeedback = async () => {
     const lastBlob = recordings[recordings.length - 1];
-    if (!lastBlob) return alert('No recording available.');
+    if (!lastBlob) {
+      alert('No recording available.');
+      return false;
+    }
 
     const formData = new FormData();
     formData.append('file', lastBlob, 'recording.webm');
 
     try {
+      setAnalyzing(true);
       const res = await fetch('/api/analyze-audio', {
         method: 'POST',
         body: formData,
@@ -103,26 +108,38 @@ export default function Recorder() {
         const parsed: SmartFeedback = JSON.parse(cleaned);
         console.log('✅ Parsed feedback JSON:', parsed);
         setFeedback(parsed);
+        return true;
       } catch (err) {
         console.error('❌ Failed to parse feedback JSON:', err);
         alert('Invalid AI response.');
+        return false;
       }
     } catch (err) {
       console.error('🛑 Error fetching feedback:', err);
       alert('Could not process feedback.');
+      return false;
+    } finally {
+      setAnalyzing(false);
     }
   };
 
   const handleAnalyzeClick = async () => {
-    if (!userId) return alert('Please log in first.');
+    // 1. Check if user is signed in
+    if (!userId) {
+      alert('Please log in first.');
+      return;
+    }
 
+    // 2. Check if user has enough minutes
     if ((minutes ?? 0) < 1) {
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: userId,
-          price_id: 'price_1Rb54bCX5IVNSF5NOnnvp0JI',
+          //price_id: 'price_1Rb54bCX5IVNSF5NOnnvp0JI',
+          price_id: 'price_1RcXI9CX5IVNSF5NEdxdcAzl',
+          
         }),
       });
 
@@ -131,7 +148,17 @@ export default function Recorder() {
       return;
     }
 
-    await getFeedback();
+    // 3. Attempt to get feedback
+    const success = await getFeedback();
+
+    // 4. If successful, deduct 1 minute
+    if (success) {
+      const deductionSuccess = await deductMinutes(1);
+      if (!deductionSuccess) {
+        console.error('Failed to deduct minutes, but analysis was successful');
+        // You might want to show a different message here
+      }
+    }
   };
 
   return (
@@ -144,9 +171,10 @@ export default function Recorder() {
           )}
           <button
             onClick={toggleRecording}
+            disabled={analyzing}
             className={`w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl shadow-lg transition-all duration-200 relative z-10 ${
               isRecording ? 'bg-red-600' : 'bg-green-600 hover:bg-green-700'
-            }`}
+            } ${analyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Mic className="w-8 h-8" />
           </button>
@@ -157,6 +185,15 @@ export default function Recorder() {
           </span>
         )}
       </div>
+
+      {/* Minutes Display */}
+      {minutes !== null && (
+        <div className="text-center">
+          <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+            {minutes} minutes remaining
+          </span>
+        </div>
+      )}
 
       {/* 🔉 Audio players */}
       {audioURLs.length > 0 && (
@@ -183,6 +220,7 @@ export default function Recorder() {
                 <button
                   onClick={() => deleteRecording(index)}
                   className="text-red-600 text-sm hover:underline"
+                  disabled={analyzing}
                 >
                   {i18n.language === 'ar' ? 'حذف' : 'Delete'}
                 </button>
@@ -196,9 +234,16 @@ export default function Recorder() {
                 {index === recordings.length - 1 && (
                   <button
                     onClick={handleAnalyzeClick}
-                    className="text-green-600 text-sm hover:underline"
+                    disabled={analyzing || minutesLoading}
+                    className={`text-green-600 text-sm hover:underline flex items-center gap-1 ${
+                      analyzing || minutesLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   >
-                    {i18n.language === 'ar' ? 'تحليل' : 'Analyze'}
+                    {analyzing && <Loader2 className="w-3 h-3 animate-spin" />}
+                    {analyzing 
+                      ? 'Analyzing...' 
+                      : i18n.language === 'ar' ? 'تحليل' : 'Analyze'
+                    }
                   </button>
                 )}
               </div>

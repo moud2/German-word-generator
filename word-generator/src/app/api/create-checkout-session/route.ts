@@ -9,10 +9,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // ⚠️ Use service role to access user metadata
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(req: Request) {
+  console.log("✅ Stripe webhook hit");
+
   const { user_id, price_id } = await req.json();
 
   const session = await stripe.checkout.sessions.create({
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
     mode: 'payment',
     success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
     cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
-    metadata: { user_id }, // 🟢 So you can update Supabase after payment
+    metadata: { user_id }, 
   });
 
   return NextResponse.json({ url: session.url });

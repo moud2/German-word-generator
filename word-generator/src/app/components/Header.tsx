@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import {
@@ -6,7 +7,6 @@ import {
   XMarkIcon,
   ClockIcon,
   ArrowRightOnRectangleIcon,
-  UserIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -17,13 +17,35 @@ export default function MinimalHeader() {
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const minutes = useAvailableMinutes();
+  const { minutes } = useAvailableMinutes();
   const profileRef = useRef(null);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setMenuOpen(false);
     setProfileOpen(false);
+  };
+
+  const handleBuyMinutes = async () => {
+    const { data } = await supabase.auth.getUser();
+    const userId = data.user?.id;
+
+    if (!userId) {
+      alert('Please log in first.');
+      return;
+    }
+
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: userId,
+        price_id: 'price_1RcXI9CX5IVNSF5NEdxdcAzl',
+      }),
+    });
+
+    const { url } = await res.json();
+    if (url) window.location.href = url;
   };
 
   useEffect(() => {
@@ -53,7 +75,6 @@ export default function MinimalHeader() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-
           <Link href="/" className="flex items-center">
             <span className="text-xl font-semibold text-gray-900">
               Topic Generator
@@ -63,7 +84,6 @@ export default function MinimalHeader() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSwitcher compact />
-
             {user ? (
               <div className="flex items-center space-x-3">
                 {minutes !== null && (
@@ -72,7 +92,6 @@ export default function MinimalHeader() {
                     <span>{minutes}m</span>
                   </div>
                 )}
-
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
@@ -85,8 +104,14 @@ export default function MinimalHeader() {
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 py-1 z-50">
                       <div className="px-4 py-3 border-b border-gray-100">
                         <p className="text-sm text-gray-900 truncate">{user.email}</p>
-                        
+                        <button
+                          onClick={handleBuyMinutes}
+                          className="text-xs text-green-600 hover:underline mt-1 block"
+                        >
+                          + Buy More Minutes
+                        </button>
                       </div>
+
                       <button
                         onClick={handleLogout}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -121,57 +146,6 @@ export default function MinimalHeader() {
             </button>
           </div>
         </div>
-
-        {/* Mobile menu */}
-        {menuOpen && (
-          <div className="md:hidden border-t border-gray-100 py-4">
-            {user ? (
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3 px-2">
-                  <div className="flex items-center justify-center w-7 h-7 bg-green-600 text-white rounded-full text-xs font-medium">
-                    {getUserInitials(user.email)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
-                    {minutes !== null && (
-                      <div className="flex items-center space-x-1 mt-1">
-                        <ClockIcon className="w-3 h-3 text-gray-500" />
-                        <span className="text-xs text-gray-500">{minutes} minutes remaining</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
-                  >
-                    <ArrowRightOnRectangleIcon className="w-4 h-4 mr-3" />
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Link
-                  href="/login"
-                  className="block px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block px-2 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 text-center"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Sign up
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </header>
   );
