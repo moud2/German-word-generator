@@ -13,22 +13,18 @@ function formatTime(seconds: number) {
   return `${mins}:${secs}`;
 }
 
-type SentencePair = { wrong: string; correct: string };
+type FeedbackItem = {
+  original: string;
+  corrected: string;
+  highlights: { wrong: string; correct: string }[];
+  explanation?: string;
+};
 
-function extractSentencePairs(feedback: string): SentencePair[] {
-  const pattern = /\d+\.\s*❌ You said:\s*"([^"]+)"\s*✅ AI Suggests:\s*"([^"]+)"/g;
-  const matches = feedback.matchAll(pattern);
-  const pairs: SentencePair[] = [];
-
-  for (const match of matches) {
-    pairs.push({
-      wrong: match[1].trim(),
-      correct: match[2].trim(),
-    });
-  }
-
-  return pairs;
-}
+type SmartFeedback = {
+  items: FeedbackItem[];
+  grammarTopics?: string[];
+  overallScore?: number;
+};
 
 export default function Recorder() {
   const { i18n } = useTranslation();
@@ -45,9 +41,8 @@ export default function Recorder() {
 
   const [audioURLs, setAudioURLs] = useState<string[]>([]);
   const [seconds, setSeconds] = useState(0);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<SmartFeedback | null>(null);
 
-  // ✅ Get user ID
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -101,9 +96,19 @@ export default function Recorder() {
       });
 
       const data = await res.json();
-      setFeedback(data.feedback || null);
+      console.log("🎧 Raw API Response:", data);
+
+      try {
+        const cleaned = data.feedback?.replace(/^```json\s*|```$/g, '').trim();
+        const parsed: SmartFeedback = JSON.parse(cleaned);
+        console.log('✅ Parsed feedback JSON:', parsed);
+        setFeedback(parsed);
+      } catch (err) {
+        console.error('❌ Failed to parse feedback JSON:', err);
+        alert('Invalid AI response.');
+      }
     } catch (err) {
-      console.error('Error parsing feedback:', err);
+      console.error('🛑 Error fetching feedback:', err);
       alert('Could not process feedback.');
     }
   };
@@ -117,7 +122,7 @@ export default function Recorder() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: userId,
-          price_id: 'price_1Rb54bCX5IVNSF5NOnnvp0JI', // replace with your Stripe price ID
+          price_id: 'price_1Rb54bCX5IVNSF5NOnnvp0JI',
         }),
       });
 
@@ -126,14 +131,12 @@ export default function Recorder() {
       return;
     }
 
-    // Enough minutes → proceed
     await getFeedback();
   };
 
-  const sentencePairs = feedback ? extractSentencePairs(feedback) : [];
-
   return (
     <div className="p-6 bg-white shadow-md rounded-2xl max-w-md w-full mx-auto space-y-6">
+      {/* 🎤 Recorder */}
       <div className="relative flex flex-col items-center justify-center space-y-2">
         <div className="relative">
           {isRecording && (
@@ -155,6 +158,7 @@ export default function Recorder() {
         )}
       </div>
 
+      {/* 🔉 Audio players */}
       {audioURLs.length > 0 && (
         <div className="space-y-4">
           {audioURLs.map((url, index) => (
@@ -203,29 +207,59 @@ export default function Recorder() {
         </div>
       )}
 
-      {sentencePairs.length > 0 && (
-        <div className="mt-6 p-4 bg-white border rounded-xl space-y-4 text-sm">
-          <h3 className="font-semibold text-gray-800 mb-2">🗣 Feedback Table</h3>
-          <table className="table-auto w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-gray-700 text-sm font-semibold">
-                <th className="px-4 py-2 border-b">🗣 You said</th>
-                <th className="px-4 py-2 border-b">🤖 AI Suggests</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sentencePairs.map((pair, i) => (
-                <tr key={i} className="hover:bg-gray-50 transition">
-                  <td className="px-4 py-3 border-b text-gray-800 align-top">
-                    {pair.wrong}
-                  </td>
-                  <td className="px-4 py-3 border-b text-gray-800 align-top">
-                    {pair.correct}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* 🧠 Modern Feedback UI */}
+      {feedback?.items && feedback.items.length > 0 && (
+        <div className="mt-6 p-6 bg-gray-50 border rounded-2xl shadow-sm space-y-6 text-sm">
+          <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
+            🧠 AI Feedback
+          </h3>
+
+          {feedback.items.map((item, i) => (
+            <div key={i} className="rounded-xl border bg-white p-4 shadow-sm space-y-3">
+              <div className="space-y-1">
+                <p>
+                  <span className="font-medium text-gray-600">❌ You said:</span>
+                  <span className="ml-2 text-gray-800">{item.original}</span>
+                </p>
+                <p>
+                  <span className="font-medium text-gray-600">✅ AI Suggests:</span>
+                  <span className="ml-2 text-gray-800">{item.corrected}</span>
+                </p>
+              </div>
+
+              {item.highlights.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {item.highlights.map((h, j) => (
+                    <div
+                      key={j}
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs bg-gray-100 text-gray-700"
+                    >
+                      <span className="line-through text-red-500">{h.wrong}</span>
+                      <span className="text-gray-400">→</span>
+                      <span className="font-medium text-green-600">{h.correct}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {item.explanation && (
+                <p className="text-gray-500 text-sm mt-2 leading-relaxed">
+                  📘 <span>{item.explanation}</span>
+                </p>
+              )}
+            </div>
+          ))}
+
+          {Array.isArray(feedback.grammarTopics) && feedback.grammarTopics.length > 0 && (
+            <div className="pt-4 border-t">
+              <h4 className="font-semibold text-gray-700 mb-1">📚 Grammar Topics</h4>
+              <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
+                {feedback.grammarTopics.map((topic, k) => (
+                  <li key={k}>{topic}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>

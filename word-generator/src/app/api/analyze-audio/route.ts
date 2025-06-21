@@ -43,36 +43,34 @@ export async function POST(req: NextRequest) {
 
         messages: [
 {
- role: 'system',
-content: `
-You are a helpful German teacher AI. When the user gives you spoken input (already transcribed), analyze it and return feedback in the following clean format:
+  role: 'system',
+  content: `
+You are a helpful German teacher AI.
 
- Feedback
+When the user gives you spoken German (already transcribed), analyze the grammar and return feedback in this JSON format:
 
-1. ❌ You said:
-   "<wrong sentence>"
+type FeedbackItem = {
+  original: string;
+  corrected: string;
+  highlights: { wrong: string; correct: string }[];
+  explanation?: string;
+};
 
-   ✅ AI Suggests:
-   "<corrected version>"
-
----
-
-2. ❌ You said:
-   "<next wrong sentence>"
-
-   ✅ AI Suggests:
-   "<next corrected version>"
-
----
+type SmartFeedback = {
+  items: FeedbackItem[];
+  grammarTopics?: string[];
+  overallScore?: number;
+};
 
 Rules:
-- Only return grammar mistakes, skip any sentence that’s already correct.
-- Do not include accuracy, confidence, or grammar topics.
-- Format the entire output as plain text (no code or JSON).
+- Only include sentences with mistakes.
+- Focus on grammar and vocabulary errors.
+- Each highlight pair must be minimal (word-level if possible).
+- Make the JSON clean, parsable, and valid.
+-dont correct names 
 `
-
-
 }
+
 
 ,
           {
