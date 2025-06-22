@@ -13,17 +13,15 @@ function formatTime(seconds: number) {
   return `${mins}:${secs}`;
 }
 
-type FeedbackItem = {
-  original: string;
-  corrected: string;
-  highlights: { wrong: string; correct: string }[];
-  explanation?: string;
+type Correction = {
+  wrong: string;
+  correct: string;
 };
 
-type SmartFeedback = {
-  items: FeedbackItem[];
-  grammarTopics?: string[];
-  overallScore?: number;
+type SimpleFeedback = {
+  isGerman: boolean;
+  detectedLanguage?: string;
+  corrections: Correction[];
 };
 
 export default function Recorder() {
@@ -42,7 +40,8 @@ export default function Recorder() {
 
   const [audioURLs, setAudioURLs] = useState<string[]>([]);
   const [seconds, setSeconds] = useState(0);
-  const [feedback, setFeedback] = useState<SmartFeedback | null>(null);
+  const [feedback, setFeedback] = useState<SimpleFeedback | null>(null);
+  const [transcript, setTranscript] = useState<string>('');
 
   useEffect(() => {
     const getUser = async () => {
@@ -105,9 +104,12 @@ export default function Recorder() {
 
       try {
         const cleaned = data.feedback?.replace(/^```json\s*|```$/g, '').trim();
-        const parsed: SmartFeedback = JSON.parse(cleaned);
+        const parsed: SimpleFeedback = JSON.parse(cleaned);
         console.log('✅ Parsed feedback JSON:', parsed);
+        
+        // Always set feedback, even if not German
         setFeedback(parsed);
+        setTranscript(data.transcript || '');
         return true;
       } catch (err) {
         console.error('❌ Failed to parse feedback JSON:', err);
@@ -116,7 +118,8 @@ export default function Recorder() {
       }
     } catch (err) {
       console.error('🛑 Error fetching feedback:', err);
-      alert('Could not process feedback.');
+      alert('Something went wrong. Please try again or record a clearer sentence.');
+
       return false;
     } finally {
       setAnalyzing(false);
@@ -137,9 +140,7 @@ export default function Recorder() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: userId,
-          //price_id: 'price_1Rb54bCX5IVNSF5NOnnvp0JI',
           price_id: 'price_1RcXI9CX5IVNSF5NEdxdcAzl',
-          
         }),
       });
 
@@ -156,7 +157,6 @@ export default function Recorder() {
       const deductionSuccess = await deductMinutes(1);
       if (!deductionSuccess) {
         console.error('Failed to deduct minutes, but analysis was successful');
-        // You might want to show a different message here
       }
     }
   };
@@ -190,7 +190,7 @@ export default function Recorder() {
       {minutes !== null && (
         <div className="text-center">
           <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-            {minutes} minutes remaining
+            {minutes} Times remaining
           </span>
         </div>
       )}
@@ -252,59 +252,54 @@ export default function Recorder() {
         </div>
       )}
 
-      {/* 🧠 Modern Feedback UI */}
-      {feedback?.items && feedback.items.length > 0 && (
-        <div className="mt-6 p-6 bg-gray-50 border rounded-2xl shadow-sm space-y-6 text-sm">
-          <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
-            🧠 AI Feedback
-          </h3>
+      {/* 📝 Transcript */}
+      {transcript && (
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h4 className="font-medium text-blue-800 mb-2">What you said:</h4>
+          <p className="text-blue-700 text-sm">{transcript}</p>
+        </div>
+      )}
 
-          {feedback.items.map((item, i) => (
-            <div key={i} className="rounded-xl border bg-white p-4 shadow-sm space-y-3">
-              <div className="space-y-1">
-                <p>
-                  <span className="font-medium text-gray-600">❌ You said:</span>
-                  <span className="ml-2 text-gray-800">{item.original}</span>
-                </p>
-                <p>
-                  <span className="font-medium text-gray-600">✅ AI Suggests:</span>
-                  <span className="ml-2 text-gray-800">{item.corrected}</span>
-                </p>
+      {/* ⚠️ Language Warning */}
+      {feedback && !feedback.isGerman && (
+        <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-yellow-600">⚠️</span>
+            <h4 className="font-medium text-yellow-800">Language Detection</h4>
+          </div>
+          <p className="text-yellow-700 text-sm">
+            {feedback.detectedLanguage 
+              ? `This sounds like ${feedback.detectedLanguage}. Please speak in German for analysis.`
+              : 'This doesn\'t sound like German. Please speak in German for analysis.'
+            }
+          </p>
+        </div>
+      )}
+
+      {/* ✅ Simple Corrections */}
+      {feedback?.isGerman && feedback.corrections && feedback.corrections.length > 0 && (
+        <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+          <h4 className="font-medium text-red-800 mb-3">Corrections needed:</h4>
+          <div className="space-y-2">
+            {feedback.corrections.map((correction, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <span className="bg-red-100 text-red-700 px-2 py-1 rounded">
+                  {correction.wrong}
+                </span>
+                <span className="text-gray-400">→</span>
+                <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
+                  {correction.correct}
+                </span>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-              {item.highlights.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {item.highlights.map((h, j) => (
-                    <div
-                      key={j}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs bg-gray-100 text-gray-700"
-                    >
-                      <span className="line-through text-red-500">{h.wrong}</span>
-                      <span className="text-gray-400">→</span>
-                      <span className="font-medium text-green-600">{h.correct}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {item.explanation && (
-                <p className="text-gray-500 text-sm mt-2 leading-relaxed">
-                  📘 <span>{item.explanation}</span>
-                </p>
-              )}
-            </div>
-          ))}
-
-          {Array.isArray(feedback.grammarTopics) && feedback.grammarTopics.length > 0 && (
-            <div className="pt-4 border-t">
-              <h4 className="font-semibold text-gray-700 mb-1">📚 Grammar Topics</h4>
-              <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
-                {feedback.grammarTopics.map((topic, k) => (
-                  <li key={k}>{topic}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+      {/* ✅ Perfect German Speech */}
+      {feedback?.isGerman && feedback.corrections && feedback.corrections.length === 0 && (
+        <div className="p-4 bg-green-50 rounded-lg border border-green-200 text-center">
+          <span className="text-green-700 font-medium">🎉 Perfect German! No corrections needed.</span>
         </div>
       )}
     </div>

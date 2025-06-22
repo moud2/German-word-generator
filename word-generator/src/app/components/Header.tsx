@@ -58,9 +58,13 @@ export default function MinimalHeader() {
         setProfileOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+  }, [menuOpen]);
 
   const getUserInitials = (email: string | null | undefined): string => {
     if (!email) return 'U';
@@ -146,6 +150,60 @@ export default function MinimalHeader() {
             </button>
           </div>
         </div>
+
+        {/* Mobile Menu Content - Fixed for Safari */}
+        {menuOpen && (
+          <div className="md:hidden absolute left-0 right-0 top-full bg-white border-t border-gray-100 shadow-lg z-40">
+            <div className="px-4 py-4 space-y-4">
+              {user ? (
+                <div className="space-y-3">
+                  <div className="pb-3 border-b border-gray-100">
+                    <p className="text-sm text-gray-900 font-medium truncate mb-2">{user.email}</p>
+                    {minutes !== null && (
+                      <div className="flex items-center space-x-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg mb-2">
+                        <ClockIcon className="w-4 h-4" />
+                        <span>{minutes} Times remaining</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => {
+                        handleBuyMinutes();
+                        setMenuOpen(false);
+                      }}
+                      className="w-full bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                    >
+                      + Buy More Minutes
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full text-left text-red-600 text-sm hover:bg-red-50 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <ArrowRightOnRectangleIcon className="w-4 h-4 mr-3" />
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Link 
+                    href="/login" 
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full text-center text-gray-700 hover:text-gray-900 text-sm font-medium border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Sign in
+                  </Link>
+                  <Link 
+                    href="/signup" 
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full text-center bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

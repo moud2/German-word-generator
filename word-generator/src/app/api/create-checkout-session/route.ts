@@ -13,7 +13,7 @@ const supabase = createClient(
 );
 
 export async function POST(req: Request) {
-  console.log("✅ Stripe webhook hit");
+  
 
   const { user_id, price_id } = await req.json();
 

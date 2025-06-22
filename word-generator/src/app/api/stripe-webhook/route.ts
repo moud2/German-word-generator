@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
   try {
     event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
-    console.log("📥 Incoming Stripe event type:", event.type);
+    
 
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
@@ -29,14 +29,13 @@ export async function POST(req: NextRequest) {
   }
 
   if (event.type === 'checkout.session.completed') {
-    debugger;
+   
    const session = event.data.object as Stripe.Checkout.Session;
 
-// 🔍 Debug full session payload
-console.log("📦 FULL SESSION RECEIVED:", session);
+
 
 const userId = session.metadata?.user_id;
-console.log("📦 Stripe Webhook - user_id from metadata:", userId);
+
 
 
     if (userId) {
@@ -46,7 +45,8 @@ console.log("📦 Stripe Webhook - user_id from metadata:", userId);
         const priceId = lineItems.data[0]?.price?.id;
         
         // Determine minutes based on price_id
-        const minutesToAdd = 10;
+        const minutesToAdd = getMinutesFromPriceId(priceId);
+
         
         if (minutesToAdd > 0) {
           // Get current minutes

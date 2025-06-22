@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const file = formData.get('file') as Blob;
-
+  
   if (!file) {
     return new Response(JSON.stringify({ error: 'No file uploaded' }), {
       status: 400,
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const whisperData = await whisperRes.json();
     const transcript = whisperData.text;
 
-    // Send transcript to GPT for feedback (plain English teacher mode)
+    // Send transcript to GPT for language detection and feedback
     const chatRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -39,57 +39,60 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY!}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o' ,
-
+        model: 'gpt-4o',
         messages: [
+          {
+            role: 'system',
+            content: `
+You are a German teacher reviewing SPOKEN language.
+
+FIRST: Check if the speech is in German. If it's clearly NOT German (English, Spanish, French, etc.), return:
 {
-  role: 'system',
-  content: `
-You are a helpful German teacher AI.
-
-When the user gives you spoken German (already transcribed), analyze the grammar and return feedback in this JSON format:
-
-type FeedbackItem = {
-  original: string;
-  corrected: string;
-  highlights: { wrong: string; correct: string }[];
-  explanation?: string;
-};
-
-type SmartFeedback = {
-  items: FeedbackItem[];
-  grammarTopics?: string[];
-  overallScore?: number;
-};
-
-Rules:
-- Only include sentences with mistakes.
-- Focus on grammar and vocabulary errors.
-- Each highlight pair must be minimal (word-level if possible).
-- Make the JSON clean, parsable, and valid.
--dont correct names 
-`
+  "isGerman": false,
+  "detectedLanguage": "detected language name",
+  "corrections": []
 }
 
+If it IS German, analyze it with these rules:
+- This is SPOKEN language - ignore missing punctuation, capitalization, or minor formatting
+- Only correct actual grammar/vocabulary MISTAKES that would sound wrong when spoken
+- Don't correct natural speech patterns, filler words, or casual pronunciation
+- Don't correct proper names or places
+- Don't suggest adding commas, periods, or capitalization
+- Focus only on: wrong verb forms, wrong articles, wrong word order, wrong vocabulary
+- Be thorough but focus on real grammatical errors that German speakers would notice
 
-,
+Return ONLY this JSON format (no markdown, no extra text):
+{
+  "isGerman": true,
+  "corrections": [
+    {
+      "wrong": "exact wrong phrase from transcript",
+      "correct": "the corrected version"
+    }
+  ]
+}
+
+If there are no real mistakes, return: {"isGerman": true, "corrections": []}
+            `
+          },
           {
             role: 'user',
-            content: transcript,
+            content: `Transcribed speech: "${transcript}"`
           },
         ],
       }),
     });
 
     const chatData = await chatRes.json();
-    const feedback = chatData.choices?.[0]?.message?.content || 'No feedback.';
+    const feedback = chatData.choices?.[0]?.message?.content || '{"corrections": []}';
 
     return new Response(JSON.stringify({ transcript, feedback }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error(' API error:', err);
+    console.error('API error:', err);
     return new Response(JSON.stringify({ error: 'AI processing failed' }), {
       status: 500,
     });
