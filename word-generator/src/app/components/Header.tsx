@@ -40,7 +40,7 @@ export default function MinimalHeader() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: userId,
-        price_id: 'price_1RcXI9CX5IVNSF5NEdxdcAzl',
+        price_id: 'price_1RcnHLCX5IVNSF5N3q1aCYai',
       }),
     });
 

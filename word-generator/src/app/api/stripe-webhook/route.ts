@@ -90,7 +90,7 @@ function getMinutesFromPriceId(priceId: string | undefined): number {
   // Map your price IDs to minutes
   const priceToMinutes: Record<string, number> = {
     // 'price_1Rb54bCX5IVNSF5NOnnvp0JI': 10, // Your current price ID gives 10 minutes
-    'price_1RcXI9CX5IVNSF5NEdxdcAzl': 10,// Add more price IDs here as you create more products price_1RcVowCX5IVNSF5N31jmNqwA
+    'price_1RcnHLCX5IVNSF5N3q1aCYai': 10,// Add more price IDs here as you create more products price_1RcVowCX5IVNSF5N31jmNqwA
     // 'price_XXXXXXXXX': 25,  // Example: 25 minutes package
     // 'price_YYYYYYYYY': 50,  // Example: 50 minutes package
   };
