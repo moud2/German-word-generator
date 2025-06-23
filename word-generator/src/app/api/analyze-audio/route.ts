@@ -19,17 +19,58 @@ export async function POST(req: NextRequest) {
     const whisperForm = new FormData();
     whisperForm.append('file', upload, 'audio.webm');
     whisperForm.append('model', 'whisper-1');
+    whisperForm.append('temperature', '0');
 
-    const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY!}`,
-      },
-      body: whisperForm,
-    });
 
-    const whisperData = await whisperRes.json();
-    const transcript = whisperData.text;
+   // Step 1: Upload the file to AssemblyAI
+const uploadRes = await fetch('https://api.assemblyai.com/v2/upload', {
+  method: 'POST',
+  headers: {
+    authorization: process.env.ASSEMBLYAI_API_KEY!,
+  },
+  body: buffer, // Direct buffer upload
+});
+
+const uploadData = await uploadRes.json();
+const audio_url = uploadData.upload_url;
+
+// Step 2: Start transcription job
+const transcriptRes = await fetch('https://api.assemblyai.com/v2/transcript', {
+  method: 'POST',
+  headers: {
+    'authorization': process.env.ASSEMBLYAI_API_KEY!,
+    'content-type': 'application/json',
+  },
+  body: JSON.stringify({
+    audio_url,
+    language_code: 'de', // Set explicitly to 'de' for German
+    format_text: false,
+  }),
+});
+
+const transcriptData = await transcriptRes.json();
+const transcriptId = transcriptData.id;
+
+// Step 3: Poll until transcription is complete
+let status = transcriptData.status;
+let transcriptText = '';
+
+while (status !== 'completed' && status !== 'error') {
+  await new Promise((resolve) => setTimeout(resolve, 3000)); // wait 3s
+  const pollingRes = await fetch(`https://api.assemblyai.com/v2/transcript/${transcriptId}`, {
+    headers: { authorization: process.env.ASSEMBLYAI_API_KEY! },
+  });
+  const pollingData = await pollingRes.json();
+  status = pollingData.status;
+  if (status === 'completed') transcriptText = pollingData.text;
+}
+
+// If it failed
+if (status !== 'completed') {
+  throw new Error('AssemblyAI transcription failed');
+}
+
+const transcript = transcriptText;
 
     // Send transcript to GPT for language detection and feedback
     const chatRes = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -39,7 +80,7 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY!}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
