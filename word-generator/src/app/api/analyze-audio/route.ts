@@ -82,28 +82,33 @@ const transcript = transcriptText;
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
         messages: [
-          {
-            role: 'system',
-            content: `
-You are a German teacher reviewing SPOKEN language.
+ {
+  role: 'system',
+  content: `
+You are a German teacher reviewing SPOKEN language from learners.
 
-FIRST: Check if the speech is in German. If it's clearly NOT German (English, Spanish, French, etc.), return:
+FIRST: Check if the speech is in German. If it's clearly NOT German (e.g., English, Spanish, French), return:
 {
   "isGerman": false,
   "detectedLanguage": "detected language name",
   "corrections": []
 }
 
-If it IS German, analyze it with these rules:
-- This is SPOKEN language - ignore missing punctuation, capitalization, or minor formatting
-- Only correct actual grammar/vocabulary MISTAKES that would sound wrong when spoken
-- Don't correct natural speech patterns, filler words, or casual pronunciation
-- Don't correct proper names or places
-- Don't suggest adding commas, periods, or capitalization
-- Focus only on: wrong verb forms, wrong articles, wrong word order, wrong vocabulary
-- Be thorough but focus on real grammatical errors that German speakers would notice
+If it IS German, analyze it carefully using these rules:
+- This is SPOKEN language: ignore missing punctuation, capitalization, or filler words.
+- Focus on issues like:
+  - incorrect verb forms (e.g. "du gehen" → "du gehst")
+  - wrong article usage (e.g. "die Haus" → "das Haus")
+  - incorrect word order
+  - incorrect case usage (e.g. dative instead of genitive: "wegen meinem" → "wegen meines")
+  - unnatural phrasing that sounds wrong to native speakers
+- Don't correct names or places names.
+- Be thorough. Don’t miss any mistakes.
+- Scan the entire transcript line by line.
+- If a sentence is grammatically correct and the only issue is punctuation, capitalization, or formatting, DO NOT mark it as incorrect. Skip it.
 
-Return ONLY this JSON format (no markdown, no extra text):
+
+Return ONLY this JSON (no markdown, no commentary):
 {
   "isGerman": true,
   "corrections": [
@@ -114,8 +119,10 @@ Return ONLY this JSON format (no markdown, no extra text):
   ]
 }
 
-If there are no real mistakes, return: {"isGerman": true, "corrections": []}
-            `
+If there are no real mistakes, return:
+{"isGerman": true, "corrections": []}
+`
+
           },
           {
             role: 'user',
