@@ -1,44 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const [isError, setIsError] = useState(false); // ✅ track if message is an error
+  const [isError, setIsError] = useState(false);
 
- const handleSignup = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await res.json();
 
-  if (error) {
-    setIsError(true);
-    setMessage(error.message);
-  } else {
-    const user = data.user;
-    if (user) {
-      // Insert into the profiles table
-      const { error: insertError } = await supabase.from('profiles').insert([
-        {
-          id: user.id,
-          available_minutes: 1, 
-        },
-      ]);
-
-      if (insertError) {
-        console.error('Error inserting into profiles:', insertError.message);
+      if (res.ok) {
+        setIsError(false);
+        setMessage("🎉 You're almost done! Check your inbox to confirm your email.");
+      } else {
+        setIsError(true);
+        setMessage(result.error || "Something went wrong, please try again.");
       }
+    } catch (err) {
+      console.error(err);
+      setIsError(true);
+      setMessage("Something went wrong, please try again.");
     }
-
-    setIsError(false);
-    setMessage("🎉 You're almost done! Check your inbox and confirm your email.");
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-green-50 flex items-center justify-center px-4">
