@@ -1,5 +1,5 @@
 import { Poppins } from 'next/font/google'
-import WordScreen from './components/wordScreen'
+import WordScreen from '../components/wordScreen'
 
 
 

@@ -8,10 +8,10 @@ import {
   ClockIcon,
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
-import { useAuth } from '../context/AuthContext';
-import LanguageSwitcher from './LanguageSwitcher';
-import { supabase } from '../lib/supabaseClient';
-import useAvailableMinutes from '../hooks/useAvailableMinutes';
+import { useAuth } from '../../app/context/AuthContext';
+import LanguageSwitcher from '../LanguageSwitcher';
+import { supabase } from '../../app/lib/supabaseClient';
+import useAvailableMinutes from '../../hooks/useAvailableMinutes';
 
 export default function MinimalHeader() {
   const { user } = useAuth();

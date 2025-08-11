@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import useTimer from '../../hooks/useTimer';
-import allWords from '../../components/data/all.json';
-import { WordEntry } from '../../types/word';
+import useTimer from './useTimer';
+import allWords from '../components/data/all.json';
+import { WordEntry } from '../types/word';
 import dynamic from 'next/dynamic';
-const Recorder = dynamic(() => import('../recorder/Recorder'), { ssr: false });
+const Recorder = dynamic(() => import('../components/recorder/Recorder'), { ssr: false });
 
 
 
@@ -19,7 +19,7 @@ export default function useWordScreen() {
   const {
     secondsLeft,
     isRunning,
-    start,        // ✅ Correctly extracted here
+    start,        
     pause,
     reset,
     format,
@@ -54,7 +54,7 @@ export default function useWordScreen() {
       if (secondsLeft === 0) {
         reset(minutes * 60);
       }
-      start(); // ✅ This will now work correctly
+      start(); 
     }
   };
 
@@ -81,6 +81,6 @@ export default function useWordScreen() {
     tips,
     features,
     allWords: ALL_WORDS,
-    start, // ✅ included in return for use elsewhere if needed
+    start, 
   };
 }

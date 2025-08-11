@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAudioRecorder } from '@/app/hooks/useAudioRecorder';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { Mic, Loader2 } from 'lucide-react';
-import useAvailableMinutes from '@hooks/useAvailableMinutes';
+import useAvailableMinutes from '@/hooks/useAvailableMinutes';
 import { supabase } from '@/app/lib/supabaseClient';
 
 function formatTime(seconds: number) {
