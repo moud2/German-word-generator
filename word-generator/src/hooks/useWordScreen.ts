@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import useTimer from './useTimer';
-import allWords from '../components/data/all.json';
+import allWords from '../data/all.json';
 import { WordEntry } from '../types/word';
 import dynamic from 'next/dynamic';
 const Recorder = dynamic(() => import('../components/recorder/Recorder'), { ssr: false });
