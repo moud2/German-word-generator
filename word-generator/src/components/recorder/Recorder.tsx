@@ -158,18 +158,18 @@ export default function Recorder() {
       try {
         const cleaned = data.feedback?.replace(/^```json\s*|```$/g, '').trim();
         const parsed: SimpleFeedback = JSON.parse(cleaned);
-        console.log('✅ Parsed feedback JSON:', parsed);
+        console.log(' Parsed feedback JSON:', parsed);
         
         setFeedback(parsed);
         setTranscript(data.transcript || '');
         return true;
       } catch (err) {
-        console.error('❌ Failed to parse feedback JSON:', err);
+        console.error(' Failed to parse feedback JSON:', err);
         alert('Invalid AI response.');
         return false;
       }
     } catch (err) {
-      console.error('🛑 Error fetching feedback:', err);
+      console.error(' Error fetching feedback:', err);
       alert('Something went wrong. Please try again or record a clearer sentence.');
       return false;
     } finally {
