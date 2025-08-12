@@ -43,6 +43,59 @@ export default function Recorder() {
   const [feedback, setFeedback] = useState<SimpleFeedback | null>(null);
   const [transcript, setTranscript] = useState<string>('');
 
+  // Component styles with glass morphism effect
+  const containerStyle: React.CSSProperties = {
+    padding: '1.5rem',
+    background: 'rgba(255, 255, 255, 0.6)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255, 255, 255, 0.4)',
+    borderRadius: '20px',
+    boxShadow: '0 4px 20px 0 rgba(0, 0, 0, 0.08)',
+    maxWidth: '28rem',
+    width: '100%',
+    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem'
+  };
+
+  const recorderButtonStyle: React.CSSProperties = {
+    width: '5rem',
+    height: '5rem',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    fontSize: '1.875rem',
+    boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.2)',
+    transition: 'all 0.2s ease',
+    position: 'relative',
+    zIndex: 10,
+    border: 'none',
+    cursor: analyzing ? 'not-allowed' : 'pointer',
+    opacity: analyzing ? 0.5 : 1
+  };
+
+  const audioPlayerContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.75rem',
+    background: 'rgba(255, 255, 255, 0.4)',
+    borderRadius: '12px',
+    boxShadow: '0 2px 8px 0 rgba(0, 0, 0, 0.05)'
+  };
+
+  const feedbackContainerStyle: React.CSSProperties = {
+    padding: '1rem',
+    borderRadius: '12px',
+    border: '1px solid',
+    fontSize: '0.875rem'
+  };
+
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -107,7 +160,6 @@ export default function Recorder() {
         const parsed: SimpleFeedback = JSON.parse(cleaned);
         console.log('✅ Parsed feedback JSON:', parsed);
         
-        // Always set feedback, even if not German
         setFeedback(parsed);
         setTranscript(data.transcript || '');
         return true;
@@ -119,7 +171,6 @@ export default function Recorder() {
     } catch (err) {
       console.error('🛑 Error fetching feedback:', err);
       alert('Something went wrong. Please try again or record a clearer sentence.');
-
       return false;
     } finally {
       setAnalyzing(false);
@@ -127,13 +178,11 @@ export default function Recorder() {
   };
 
   const handleAnalyzeClick = async () => {
-    // 1. Check if user is signed in
     if (!userId) {
       alert('Please log in first.');
       return;
     }
 
-    // 2. Check if user has enough minutes
     if ((minutes ?? 0) < 1) {
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
@@ -149,10 +198,7 @@ export default function Recorder() {
       return;
     }
 
-    // 3. Attempt to get feedback
     const success = await getFeedback();
-
-    // 4. If successful, deduct 1 minute
     if (success) {
       const deductionSuccess = await deductMinutes(1);
       if (!deductionSuccess) {
@@ -162,25 +208,55 @@ export default function Recorder() {
   };
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-2xl max-w-md w-full mx-auto space-y-6">
-      {/* 🎤 Recorder */}
-      <div className="relative flex flex-col items-center justify-center space-y-2">
-        <div className="relative">
+    <div style={containerStyle}>
+      {/* Recorder Button Section */}
+      <div style={{ 
+        position: 'relative', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        gap: '0.5rem' 
+      }}>
+        <div style={{ position: 'relative' }}>
           {isRecording && (
-            <div className="absolute inset-0 rounded-full animate-ping bg-red-500 opacity-30 scale-110"></div>
+            <div style={{
+              position: 'absolute',
+              inset: '0',
+              borderRadius: '50%',
+              animation: 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+              backgroundColor: '#ef4444',
+              opacity: 0.3,
+              transform: 'scale(1.1)'
+            }}></div>
           )}
           <button
             onClick={toggleRecording}
             disabled={analyzing}
-            className={`w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl shadow-lg transition-all duration-200 relative z-10 ${
-              isRecording ? 'bg-red-600' : 'bg-green-600 hover:bg-green-700'
-            } ${analyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
+            style={{
+              ...recorderButtonStyle,
+              backgroundColor: isRecording ? '#2563eb' : '#2563eb'
+            }}
+            onMouseEnter={(e) => {
+              if (!analyzing && !isRecording) {
+                e.currentTarget.style.backgroundColor = '#1d4ed8';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!analyzing && !isRecording) {
+                e.currentTarget.style.backgroundColor = '#2563eb';
+              }
+            }}
           >
-            <Mic className="w-8 h-8" />
+            <Mic style={{ width: '2rem', height: '2rem' }} />
           </button>
         </div>
         {isRecording && (
-          <span className="text-sm font-mono text-gray-700">
+          <span style={{ 
+            fontSize: '0.875rem', 
+            fontFamily: 'monospace', 
+            color: '#2563eb' 
+          }}>
             {formatTime(seconds)}
           </span>
         )}
@@ -188,25 +264,28 @@ export default function Recorder() {
 
       {/* Minutes Display */}
       {minutes !== null && (
-        <div className="text-center">
-          <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+        <div style={{ textAlign: 'center' }}>
+          <span style={{
+            fontSize: '0.875rem',
+            color: '#4b5563',
+            backgroundColor: 'rgba(243, 244, 246, 0.8)',
+            padding: '0.25rem 0.75rem',
+            borderRadius: '9999px'
+          }}>
             {minutes} Times remaining
           </span>
         </div>
       )}
 
-      {/* 🔉 Audio players */}
+      {/* Audio Players */}
       {audioURLs.length > 0 && (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {audioURLs.map((url, index) => (
-            <div
-              key={index}
-              className="flex flex-col sm:flex-row items-center gap-3 p-3 bg-gray-100 rounded-lg shadow-sm"
-            >
+            <div key={index} style={audioPlayerContainerStyle}>
               <audio
                 controls
                 src={url}
-                className="w-full sm:w-auto"
+                style={{ width: '100%' }}
                 onPlay={(e) => {
                   document.querySelectorAll('audio').forEach((el) => {
                     if (el !== e.target) {
@@ -216,18 +295,30 @@ export default function Recorder() {
                   });
                 }}
               />
-              <div className="flex gap-3 flex-wrap">
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => deleteRecording(index)}
-                  className="text-red-600 text-sm hover:underline"
                   disabled={analyzing}
+                  style={{
+                    color: '#2563eb',
+                    fontSize: '0.875rem',
+                    background: 'none',
+                    border: 'none',
+                    textDecoration: 'underline',
+                    cursor: analyzing ? 'not-allowed' : 'pointer',
+                    opacity: analyzing ? 0.5 : 1
+                  }}
                 >
                   {i18n.language === 'ar' ? 'حذف' : 'Delete'}
                 </button>
                 <a
                   href={url}
                   download={`recording-${index + 1}.webm`}
-                  className="text-blue-600 text-sm hover:underline"
+                  style={{
+                    color: '#2563eb',
+                    fontSize: '0.875rem',
+                    textDecoration: 'underline'
+                  }}
                 >
                   {i18n.language === 'ar' ? 'تحميل' : 'Download'}
                 </a>
@@ -235,11 +326,20 @@ export default function Recorder() {
                   <button
                     onClick={handleAnalyzeClick}
                     disabled={analyzing || minutesLoading}
-                    className={`text-green-600 text-sm hover:underline flex items-center gap-1 ${
-                      analyzing || minutesLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    style={{
+                      color: '#2563eb',
+                      fontSize: '0.875rem',
+                      background: 'none',
+                      border: 'none',
+                      textDecoration: 'underline',
+                      cursor: analyzing || minutesLoading ? 'not-allowed' : 'pointer',
+                      opacity: analyzing || minutesLoading ? 0.5 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem'
+                    }}
                   >
-                    {analyzing && <Loader2 className="w-3 h-3 animate-spin" />}
+                    {analyzing && <Loader2 style={{ width: '0.75rem', height: '0.75rem', animation: 'spin 1s linear infinite' }} />}
                     {analyzing 
                       ? 'Analyzing...' 
                       : i18n.language === 'ar' ? 'تحليل' : 'Analyze'
@@ -252,22 +352,32 @@ export default function Recorder() {
         </div>
       )}
 
-      {/* 📝 Transcript */}
+      {/* Transcript Display */}
       {transcript && (
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h4 className="font-medium text-blue-800 mb-2">What you said:</h4>
-          <p className="text-blue-700 text-sm">{transcript}</p>
+        <div style={{
+          ...feedbackContainerStyle,
+          backgroundColor: 'rgba(219, 234, 254, 0.8)',
+          borderColor: '#93c5fd'
+        }}>
+          <h4 style={{ fontWeight: 500, color: '#1e40af', marginBottom: '0.5rem' }}>
+            What you said:
+          </h4>
+          <p style={{ color: '#1d4ed8', margin: 0 }}>{transcript}</p>
         </div>
       )}
 
-      {/* ⚠️ Language Warning */}
+      {/* Language Warning */}
       {feedback && !feedback.isGerman && (
-        <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-yellow-600">⚠️</span>
-            <h4 className="font-medium text-yellow-800">Language Detection</h4>
+        <div style={{
+          ...feedbackContainerStyle,
+          backgroundColor: 'rgba(254, 249, 195, 0.8)',
+          borderColor: '#fbbf24'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <span>⚠️</span>
+            <h4 style={{ fontWeight: 500, color: '#92400e', margin: 0 }}>Language Detection</h4>
           </div>
-          <p className="text-yellow-700 text-sm">
+          <p style={{ color: '#a16207', margin: 0 }}>
             {feedback.detectedLanguage 
               ? `This sounds like ${feedback.detectedLanguage}. Please speak in German for analysis.`
               : 'This doesn\'t sound like German. Please speak in German for analysis.'
@@ -276,18 +386,35 @@ export default function Recorder() {
         </div>
       )}
 
-      {/* ✅ Simple Corrections */}
+      {/* Corrections Display */}
       {feedback?.isGerman && feedback.corrections && feedback.corrections.length > 0 && (
-        <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-          <h4 className="font-medium text-red-800 mb-3">Corrections needed:</h4>
-          <div className="space-y-2">
+        <div style={{
+          ...feedbackContainerStyle,
+          backgroundColor: 'rgba(254, 226, 226, 0.8)',
+          borderColor: '#f87171'
+        }}>
+          <h4 style={{ fontWeight: 500, color: '#991b1b', marginBottom: '0.75rem' }}>
+            Corrections needed:
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {feedback.corrections.map((correction, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <span className="bg-red-100 text-red-700 px-2 py-1 rounded">
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{
+                  backgroundColor: 'rgba(254, 226, 226, 1)',
+                  color: '#b91c1c',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '4px'
+                }}>
                   {correction.wrong}
                 </span>
-                <span className="text-gray-400">→</span>
-                <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
+                <span style={{ color: '#9ca3af' }}>→</span>
+                <span style={{
+                  backgroundColor: 'rgba(220, 252, 231, 1)',
+                  color: '#065f46',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '4px',
+                  fontWeight: 500
+                }}>
                   {correction.correct}
                 </span>
               </div>
@@ -296,12 +423,33 @@ export default function Recorder() {
         </div>
       )}
 
-      {/* ✅ Perfect German Speech */}
+      {/* Success Message */}
       {feedback?.isGerman && feedback.corrections && feedback.corrections.length === 0 && (
-        <div className="p-4 bg-green-50 rounded-lg border border-green-200 text-center">
-          <span className="text-green-700 font-medium">🎉 Perfect German! No corrections needed.</span>
+        <div style={{
+          ...feedbackContainerStyle,
+          backgroundColor: 'rgba(220, 252, 231, 0.8)',
+          borderColor: '#34d399',
+          textAlign: 'center'
+        }}>
+          <span style={{ color: '#047857', fontWeight: 500 }}>
+            🎉 Perfect German! No corrections needed.
+          </span>
         </div>
       )}
+
+      {/* Add ping animation keyframes */}
+      <style jsx>{`
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

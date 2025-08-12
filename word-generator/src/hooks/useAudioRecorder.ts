@@ -11,7 +11,7 @@ export function useAudioRecorder() {
     if (typeof window === 'undefined') return;
     if (isRecording) return;
 
-    // ✅ Check if browser supports audio recording
+    //  Check if browser supports audio recording
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       alert('Audio recording is not supported in this browser. Please use Safari or Chrome.');
       return;
@@ -50,10 +50,10 @@ export function useAudioRecorder() {
       const blob = await recorderRef.current.getBlob();
       setRecordings((prev) => [...prev, blob]);
     } catch (err) {
-      console.error('🛑 Failed to stop recording:', err);
+      console.error(' Failed to stop recording:', err);
     }
 
-    // ✅ Clean up audio tracks
+    //  Clean up audio tracks
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     recorderRef.current = null;
