@@ -9,7 +9,7 @@ import LevelSelector from './LevelSelector';
 import WordDisplay from './WordDisplay';
 import GenerateButton from './GenerateButton';
 
-import '../../app/i18n';
+
 import useWordScreen from '../../hooks/useWordScreen';
 
 export default function WordScreen() {

@@ -9,7 +9,7 @@ import {
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../app/context/AuthContext';
-import LanguageSwitcher from '../LanguageSwitcher';
+// import LanguageSwitcher from '../LanguageSwitcher'; // ← removed
 import { supabase } from '../../app/lib/supabaseClient';
 import useAvailableMinutes from '../../hooks/useAvailableMinutes';
 
@@ -76,7 +76,7 @@ export default function MinimalHeader() {
 
           {/* Desktop */}
           <div className="hidden md:flex items-center gap-4">
-            <LanguageSwitcher compact />
+            {/* <LanguageSwitcher compact /> */} {/* ← removed */}
 
             {user ? (
               <div className="flex items-center gap-3">
@@ -143,7 +143,7 @@ export default function MinimalHeader() {
 
           {/* Mobile trigger */}
           <div className="md:hidden flex items-center gap-2">
-            <LanguageSwitcher compact />
+            {/* <LanguageSwitcher compact /> */} {/* ← removed */}
             <button
               onClick={() => setMenuOpen((v) => !v)}
               className="p-2 rounded-md text-gray-700 hover:bg-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
@@ -214,3 +214,4 @@ export default function MinimalHeader() {
     </header>
   );
 }
+  
