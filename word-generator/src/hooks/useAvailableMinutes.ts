@@ -25,90 +25,35 @@ export default function useAvailableMinutes() {
     }
   };
 
-  const deductMinutes = async (minutesToDeduct: number) => {
-    setLoading(true);
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      const userId = user?.id;
-      if (!userId) throw new Error('User not authenticated');
+  const deductMinutes = async (amount: number) => {
+  setLoading(true);
+  const { data, error } = await supabase.rpc('consume_minutes', { p_amount: amount });
+  setLoading(false);
 
-      // First get current minutes
-      const { data: currentData, error: fetchError } = await supabase
-        .from('profiles')
-        .select('available_minutes')
-        .eq('id', userId)
-        .single();
+  if (error) {
+    // optional: handle "INSUFFICIENT_MINUTES"
+    console.error('[consume_minutes]', error);
+    return false;
+  }
 
-      if (fetchError) throw fetchError;
+  setMinutes(data as number); // remaining minutes from DB
+  return true;
+};
 
-      const currentMinutes = currentData?.available_minutes ?? 0;
-      const newMinutes = Math.max(0, currentMinutes - minutesToDeduct);
-
-      // Update minutes in database
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ available_minutes: newMinutes })
-        .eq('id', userId);
-
-      if (updateError) throw updateError;
-
-      // Update local state
-      setMinutes(newMinutes);
-      return true;
-    } catch (error) {
-      console.error('Failed to deduct minutes:', error);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const refreshMinutes = () => {
     fetchMinutes();
   };
 
-  const addMinutes = async (minutesToAdd: number) => {
+const addMinutes = async (amount: number) => {
   setLoading(true);
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const userId = user?.id;
-    
-    if (!userId) throw new Error('User not authenticated');
-
-    // First get current minutes
-    const { data: currentData, error: fetchError } = await supabase
-      .from('profiles')
-      .select('available_minutes')
-      .eq('id', userId)
-      .single();
-
-    if (fetchError) throw fetchError;
-
-    const currentMinutes = currentData?.available_minutes ?? 0;
-    const newMinutes = currentMinutes + minutesToAdd;
-
-    // Update minutes in database
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ available_minutes: newMinutes })
-      .eq('id', userId);
-
-    if (updateError) throw updateError;
-
-    // Update local state
-    setMinutes(newMinutes);
-    return true;
-  } catch (error) {
-    console.error('Failed to add minutes:', error);
-    return false;
-  } finally {
-    setLoading(false);
-  }
+  const { data, error } = await supabase.rpc('grant_minutes', { p_amount: amount });
+  setLoading(false);
+  if (error) { console.error('[grant_minutes]', error); return false; }
+  setMinutes(data as number);
+  return true;
 };
+
 
   useEffect(() => {
     fetchMinutes();

@@ -37,7 +37,7 @@ export function useAudioRecorder() {
       await recorder.startRecording();
       setIsRecording(true);
     } catch (err) {
-      console.error('🎙️ Failed to access mic:', err);
+      console.error(' Failed to access mic:', err);
       alert('Could not access microphone. Please check browser permissions.');
     }
   };
