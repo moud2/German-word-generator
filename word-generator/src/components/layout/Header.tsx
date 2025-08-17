@@ -68,11 +68,18 @@ export default function MinimalHeader() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Bar */}
         <div className="flex h-14 items-center justify-between">
-          <Link href="/" className="flex items-center">
-            <span className="text-lg font-semibold tracking-tight text-gray-800">
-              Topic Generator
-            </span>
-          </Link>
+         <Link href="/" className="flex items-center gap-2">
+  <span className="text-lg font-semibold tracking-tight text-gray-800">
+    Topic Generator
+  </span>
+  <span
+    aria-label="beta"
+    className="rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 ring-1 ring-blue-200"
+  >
+    Beta
+  </span>
+</Link>
+
 
           {/* Desktop */}
           <div className="hidden md:flex items-center gap-4">
